@@ -1,18 +1,23 @@
-import WaterTank3D from '../components/widgets/WaterTank3D';
 import { useCallback, useState } from 'react';
 import { useRealtimeReadings } from '../hooks/useRealtimeReadings';
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
+import { useLatency } from '../hooks/useLatency';
+import { useUptime } from '../hooks/useUptime';
 import StatCard from '../components/widgets/StatCard';
 import MultiSensorChart from '../components/widgets/MultiSensorChart';
 import StatusBadge from '../components/widgets/StatusBadge';
 import EventTicker from '../components/widgets/EventTicker';
 import DataExportPanel from '../components/widgets/DataExportPanel';
+import SessionReportButton from '../components/widgets/SessionReportButton';
+import WaterTank3D from '../components/widgets/WaterTank3D';
 import Toasts, { type ToastData } from '../components/ui/Toast';
 import type { AlgaeEvent } from '../types';
 
 export default function Dashboard() {
   const { readings, latest } = useRealtimeReadings(60);
   const [toasts, setToasts] = useState<ToastData[]>([]);
+  const latency = useLatency(30000);
+  const { start: sessionStart, formatted: uptime } = useUptime();
 
   const handleNewEvent = useCallback((e: AlgaeEvent) => {
     const id = Date.now();
@@ -44,7 +49,17 @@ export default function Dashboard() {
     <div className="p-6">
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-bold tracking-wide">Live Dashboard</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {latency !== null && (
+            <span className="flex items-center gap-2 text-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00FFA3]" />
+              <span className="font-mono text-white/50">{latency} ms</span>
+            </span>
+          )}
+          <span className="flex items-center gap-2 text-xs">
+            <span className="text-white/30">⏱</span>
+            <span className="font-mono text-white/50">{uptime}</span>
+          </span>
           <span className="flex items-center gap-2 text-xs">
             <span className={`h-2 w-2 rounded-full ${isStale ? 'bg-red-500' : 'bg-[#00FFA3] animate-pulse'}`} />
             <span className={`font-mono ${isStale ? 'text-red-500' : 'text-[#00FFA3]'}`}>
@@ -87,14 +102,19 @@ export default function Dashboard() {
             <StatusBadge label="Algae" active={latest?.algae_detected ?? false} activeColor="#FF4D6D" />
             <StatusBadge label="Pump" active={latest?.pump_on ?? false} activeColor="#00FFA3" />
           </div>
-          <DataExportPanel />
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-3">
+            <h2 className="text-sm uppercase tracking-widest text-white/60 mb-1">Reports & Export</h2>
+            <SessionReportButton readings={readings} events={events} sessionStart={sessionStart} />
+            <DataExportPanel />
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <WaterTank3D latest={latest} />
         <EventTicker events={events} />
-        </div>
+      </div>
 
       <footer className="mt-6 text-center text-xs text-white/30 font-mono">
         AeroAqua v2 · {readings.length} readings buffered
