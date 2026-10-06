@@ -1,122 +1,62 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useRealtimeReadings } from './hooks/useRealtimeReadings';
+import { useRealtimeEvents } from './hooks/useRealtimeEvents';
+import StatCard from './components/widgets/StatCard';
+import MultiSensorChart from './components/widgets/MultiSensorChart';
+import StatusBadge from './components/widgets/StatusBadge';
+import EventTicker from './components/widgets/EventTicker';
+import DataExportPanel from './components/widgets/DataExportPanel';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { readings, latest } = useRealtimeReadings(60);
+  const events = useRealtimeEvents(15);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="min-h-screen text-white p-6">
+      <header className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🌊</span>
+          <h1 className="text-xl font-bold tracking-wide">AEROAQUA</h1>
+          <span className="text-xs text-white/40 uppercase tracking-widest">Telemetry</span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 text-xs">
+            <span className="h-2 w-2 rounded-full bg-[#00FFA3] animate-pulse" />
+            <span className="text-[#00FFA3] font-mono">LIVE</span>
+          </span>
+          <span className="font-mono text-xs text-white/40">
+            {new Date().toLocaleTimeString('en-IN')}
+          </span>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Temperature" value={latest?.temperature?.toFixed(1) ?? '--'} unit="°C" accent="#00E5FF" />
+        <StatCard label="Max DO" value={latest?.max_do?.toFixed(1) ?? '--'} unit="mg/L" accent="#00FFA3" />
+        <StatCard label="pH" value={latest?.ph?.toFixed(2) ?? '--'} accent="#FFB84D" />
+        <StatCard label="Clarity" value={latest?.light_transmission?.toFixed(0) ?? '--'} unit="%" accent="#00E5FF" />
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div className="lg:col-span-2">
+          <MultiSensorChart readings={readings} />
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-3">
+            <h2 className="text-sm uppercase tracking-widest text-white/60 mb-3">System Status</h2>
+            <StatusBadge label="Algae" active={latest?.algae_detected ?? false} activeColor="#FF4D6D" />
+            <StatusBadge label="Pump" active={latest?.pump_on ?? false} activeColor="#00FFA3" />
+          </div>
+          <DataExportPanel />
         </div>
-      </section>
+      </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <EventTicker events={events} />
+
+      <footer className="mt-6 text-center text-xs text-white/30 font-mono">
+        AeroAqua v2 · {readings.length} readings buffered
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
