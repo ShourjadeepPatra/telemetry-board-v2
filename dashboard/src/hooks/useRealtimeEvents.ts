@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { AlgaeEvent } from '../types';
 
-export function useRealtimeEvents(limit = 15) {
+export function useRealtimeEvents(
+  limit = 15,
+  onNewEvent?: (e: AlgaeEvent) => void
+) {
   const [events, setEvents] = useState<AlgaeEvent[]>([]);
 
   useEffect(() => {
@@ -19,7 +22,9 @@ export function useRealtimeEvents(limit = 15) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'algae_events' },
         (payload) => {
-          setEvents((prev) => [payload.new as AlgaeEvent, ...prev].slice(0, limit));
+          const newEvent = payload.new as AlgaeEvent;
+          setEvents((prev) => [newEvent, ...prev].slice(0, limit));
+          onNewEvent?.(newEvent);
         }
       )
       .subscribe();
@@ -27,7 +32,7 @@ export function useRealtimeEvents(limit = 15) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [limit]);
+  }, [limit, onNewEvent]);
 
   return events;
 }

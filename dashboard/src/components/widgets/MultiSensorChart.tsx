@@ -1,22 +1,35 @@
 import { useState } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, ReferenceLine, ReferenceArea,
 } from 'recharts';
 import type { Reading } from '../../types';
+import { useTheme } from '../../hooks/useTheme';
 
 interface Props {
   readings: Reading[];
+  algaeThreshold?: number;
 }
 
-type Metric = 'temperature' | 'max_do' | 'ph';
+type Metric = 'temperature' | 'max_do' | 'ph' | 'light_transmission';
 
 const metricConfig: Record<Metric, { label: string; color: string; domain: [number, number] }> = {
   temperature: { label: 'Temperature °C', color: '#00E5FF', domain: [0, 40] },
   max_do: { label: 'Max DO mg/L', color: '#00FFA3', domain: [0, 14] },
   ph: { label: 'pH', color: '#FFB84D', domain: [0, 14] },
+  light_transmission: { label: 'Clarity %', color: '#00E5FF', domain: [0, 100] },
 };
 
-export default function MultiSensorChart({ readings }: Props) {
+const tabLabel: Record<Metric, string> = {
+  temperature: 'Temp',
+  max_do: 'DO',
+  ph: 'pH',
+  light_transmission: 'Clarity',
+};
+
+export default function MultiSensorChart({ readings, algaeThreshold = 60 }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [metric, setMetric] = useState<Metric>('temperature');
 
   const data = readings.map((r) => ({
@@ -27,6 +40,13 @@ export default function MultiSensorChart({ readings }: Props) {
   }));
 
   const cfg = metricConfig[metric];
+  const showRiskZone = metric === 'light_transmission';
+
+  const gridColor = isDark ? '#ffffff10' : '#0A0E1A12';
+  const axisColor = isDark ? '#ffffff60' : '#0A0E1A99';
+  const tooltipBg = isDark ? '#0A0E1A' : '#ffffff';
+  const tooltipBorder = isDark ? '#ffffff20' : '#0A0E1A22';
+  const tooltipText = isDark ? '#ffffff80' : '#0A0E1A99';
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5">
@@ -43,7 +63,7 @@ export default function MultiSensorChart({ readings }: Props) {
                   : 'text-white/40 hover:text-white/70'
               }`}
             >
-              {m === 'max_do' ? 'DO' : m === 'temperature' ? 'Temp' : 'pH'}
+              {tabLabel[m]}
             </button>
           ))}
         </div>
@@ -57,18 +77,47 @@ export default function MultiSensorChart({ readings }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-              <XAxis dataKey="time" stroke="#ffffff40" fontSize={11} />
-              <YAxis stroke="#ffffff40" fontSize={11} domain={cfg.domain} width={35} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+              <XAxis dataKey="time" stroke={axisColor} fontSize={11} tick={{ fill: axisColor }} />
+              <YAxis
+                stroke={axisColor}
+                fontSize={11}
+                domain={cfg.domain}
+                width={35}
+                tick={{ fill: axisColor }}
+              />
               <Tooltip
                 contentStyle={{
-                  background: '#0A0E1A',
-                  border: '1px solid #ffffff20',
+                  background: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
                   borderRadius: '8px',
                   fontSize: '12px',
+                  color: isDark ? '#ffffff' : '#0A0E1A',
                 }}
-                labelStyle={{ color: '#ffffff80' }}
+                labelStyle={{ color: tooltipText }}
+                formatter={(value) => [Number(value).toFixed(2), cfg.label] as [string, string]}
               />
+              {showRiskZone && (
+                <>
+                  <ReferenceArea
+                    y1={0}
+                    y2={algaeThreshold}
+                    fill="#FF4D6D"
+                    fillOpacity={0.08}
+                  />
+                  <ReferenceLine
+                    y={algaeThreshold}
+                    stroke="#FF4D6D"
+                    strokeDasharray="4 4"
+                    label={{
+                      value: `Algae Risk Zone (<${algaeThreshold}%)`,
+                      fill: '#FF4D6D',
+                      fontSize: 10,
+                      position: 'insideTopRight',
+                    }}
+                  />
+                </>
+              )}
               <Line
                 type="monotone"
                 dataKey="value"

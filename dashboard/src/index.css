@@ -11,10 +11,88 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* ============ DARK (default) ============ */
+html { color-scheme: dark; }
+
 body {
-  background-color: var(--color-ocean-950);
-  color: white;
+  background-color: #0A0E1A;
+  color: #ffffff;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   margin: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ============ LIGHT MODE ============ */
+html.light { color-scheme: light; }
+
+html.light body {
+  background-color: #EEF2F7;
+  color: #0A0E1A;
+}
+
+/* Force all text-white/* utilities to dark shades */
+html.light [class*="text-white"] {
+  color: #0A0E1A !important;
+}
+
+/* Soften pure-white and heavy-opacity text a bit */
+html.light .text-white\/60,
+html.light .text-white\/50,
+html.light .text-white\/40,
+html.light .text-white\/30 {
+  color: rgba(10, 14, 26, 0.6) !important;
+}
+
+/* Backgrounds */
+html.light [class*="bg-white/"] {
+  background-color: rgba(10, 14, 26, 0.04) !important;
+}
+html.light [class*="bg-white/[0.0"] {
+  background-color: rgba(10, 14, 26, 0.03) !important;
+}
+html.light .bg-ocean-950\/50 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Borders */
+html.light [class*="border-white/"] {
+  border-color: rgba(10, 14, 26, 0.1) !important;
+}
+
+/* Algae alert panel — keep it red but softer */
+html.light .border-\[\#FF4D6D\]\/60 {
+  border-color: rgba(255, 77, 109, 0.5) !important;
+}
+
+/* Chart SVG text */
+html.light svg text {
+  fill: rgba(10, 14, 26, 0.6) !important;
+}
+
+/* Recharts grid lines — force light gray in light mode */
+html.light svg line[stroke*="ffffff"] {
+  stroke: rgba(10, 14, 26, 0.08) !important;
+}
+
+/* Recharts tooltip — invert */
+html.light .recharts-tooltip-wrapper > div {
+  background-color: #ffffff !important;
+  border-color: rgba(10, 14, 26, 0.15) !important;
+  color: #0A0E1A !important;
+}
+
+/* Inputs */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: rgba(10, 14, 26, 0.04) !important;
+  color: #0A0E1A !important;
+  border-color: rgba(10, 14, 26, 0.15) !important;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

@@ -1,10 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Apply saved theme immediately on load
+const saved = localStorage.getItem('aeroaqua-theme') ?? 'dark';
+document.documentElement.classList.add(saved);
+
+createRoot(document.getElementById('root')!).render(<App />);
