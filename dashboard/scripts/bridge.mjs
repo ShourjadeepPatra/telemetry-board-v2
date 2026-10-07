@@ -4,9 +4,21 @@ import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
 // ---- CONFIG ----
-const SERIAL_PORT = 'COM7';      // 👈 CHANGE to your actual COM port
+// COM port comes from .env.local — change it there, not here.
+// If not set, we auto-detect the first available port.
+let SERIAL_PORT = process.env.BRIDGE_COM_PORT;
+
+if (!SERIAL_PORT) {
+  const ports = await SerialPort.list();
+  if (ports.length === 0) {
+    console.error('❌ No serial ports found. Plug in the ESP32.');
+    process.exit(1);
+  }
+  SERIAL_PORT = ports[0].path;
+  console.log(`⚠️  BRIDGE_COM_PORT not set. Auto-selected: ${SERIAL_PORT}`);
+}
+
 const BAUD_RATE = 115200;
-// ----------------
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
