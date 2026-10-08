@@ -1,3 +1,4 @@
+import BloomPrediction from '../components/widgets/BloomPrediction';
 import { useCallback, useState } from 'react';
 import { useRealtimeReadings } from '../hooks/useRealtimeReadings';
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
@@ -101,6 +102,16 @@ export default function Dashboard() {
             <h2 className="text-sm uppercase tracking-widest text-white/60 mb-3">System Status</h2>
             <StatusBadge label="Algae" active={latest?.algae_detected ?? false} activeColor="#FF4D6D" />
             <StatusBadge label="Pump" active={latest?.pump_on ?? false} activeColor="#00FFA3" />
+          </div>
+
+          <div className="space-y-4">
+            <BloomPrediction readings={readings} />   {/* ← NEW */}
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-3">
+              <h2 className="text-sm uppercase tracking-widest text-white/60 mb-1">Reports & Export</h2>
+              <SessionReportButton readings={readings} events={events} sessionStart={sessionStart} />
+              <DataExportPanel />
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 space-y-3">

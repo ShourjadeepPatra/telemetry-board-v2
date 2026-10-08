@@ -5,10 +5,10 @@ import {
 } from 'recharts';
 import type { Reading } from '../../types';
 import { useTheme } from '../../hooks/useTheme';
+import { useConfig } from '../../hooks/useConfig';
 
 interface Props {
   readings: Reading[];
-  algaeThreshold?: number;
 }
 
 type Metric = 'temperature' | 'max_do' | 'ph' | 'light_transmission';
@@ -27,10 +27,13 @@ const tabLabel: Record<Metric, string> = {
   light_transmission: 'Clarity',
 };
 
-export default function MultiSensorChart({ readings, algaeThreshold = 60 }: Props) {
+export default function MultiSensorChart({ readings }: Props) {
   const { theme } = useTheme();
+  const { config } = useConfig();
   const isDark = theme === 'dark';
   const [metric, setMetric] = useState<Metric>('temperature');
+
+  const algaeThreshold = config.algae_threshold;
 
   const data = readings.map((r) => ({
     time: new Date(r.created_at).toLocaleTimeString('en-IN', {
